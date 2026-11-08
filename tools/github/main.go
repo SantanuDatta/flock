@@ -1,4 +1,4 @@
-// Command github applies Flock's pull request and issue-triage policy in GitHub Actions.
+// Command github applies Flock's pull request, merge queue and issue-triage policy in GitHub Actions.
 package main
 
 import (
@@ -6,19 +6,21 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/google/go-github/v93/github"
 
 	"flock/tools/github/github_service"
 	"flock/tools/github/issue_triage"
+	"flock/tools/github/merge_gate"
 	"flock/tools/github/milestone_transfer"
 	"flock/tools/github/pr_gate"
 	"flock/tools/github/repository"
 )
 
 func main() {
-	if len(os.Args) != 2 || (os.Args[1] != "pr" && os.Args[1] != "issue") {
-		fail(errors.New("usage: github pr | issue"))
+	if len(os.Args) != 2 || (os.Args[1] != "pr" && os.Args[1] != "issue" && os.Args[1] != "merge") {
+		fail(errors.New("usage: github pr | issue | merge"))
 	}
 	owner, repo, err := repository.Parse(os.Getenv("GITHUB_REPOSITORY"))
 	if err != nil {
@@ -42,6 +44,8 @@ func main() {
 		err = runPullRequestEvent(client, owner, repo, event)
 	case "issue":
 		err = runIssueEvent(client, owner, repo, event)
+	case "merge":
+		err = runMergeGroupEvent(client, owner, repo, event)
 	}
 	if err != nil {
 		fail(err)
@@ -79,6 +83,19 @@ func runIssueEvent(api *github_service.Service, owner, repository string, data [
 		return err
 	}
 	return issue_triage.Run(api, owner, repository, event.GetIssue())
+}
+
+func runMergeGroupEvent(api *github_service.Service, owner, repository string, data []byte) error {
+	var event github.MergeGroupEvent
+	if err := json.Unmarshal(data, &event); err != nil {
+		return err
+	}
+	runID, _ := strconv.ParseInt(os.Getenv("GITHUB_RUN_ID"), 10, 64)
+	return merge_gate.Run(api, owner, repository, merge_gate.Event{
+		HeadRef: event.GetMergeGroup().GetHeadRef(),
+		HeadSHA: event.GetMergeGroup().GetHeadSHA(),
+		RunID:   runID,
+	})
 }
 
 func apiURL() string {
