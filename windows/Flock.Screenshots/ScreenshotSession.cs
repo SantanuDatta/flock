@@ -79,6 +79,30 @@ internal sealed class ScreenshotSession(App app)
         return window;
     }
 
+    /// <summary>A destructive confirmation, without changing the demo project folders.</summary>
+    internal async Task<Window> ShowRemoveProjectFolder()
+    {
+        var window = (SettingsWindow)await ShowSettings(SettingsPane.General);
+        await Settled();
+        _ = window.Confirm("Remove C:\\Projects from project folders?",
+            "Its folders stop being served as sites. Nothing is deleted from disk.", "Remove", true);
+        await Settled();
+        var dialog = VisualTreeHelper.GetOpenPopupsForXamlRoot(window.XamlRoot)
+            .Select(popup => popup.Child is { } child ? Find<ContentDialog>(child, _ => true) : null)
+            .FirstOrDefault(found => found is not null)
+            ?? throw new InvalidOperationException("The confirmation dialog did not open.");
+        var remove = Find<Button>(dialog, button => button.Name == "PrimaryButton");
+        var cancel = Find<Button>(dialog, button => button.Name == "CloseButton");
+        if (remove?.Background is not SolidColorBrush { Color: { R: 196, G: 43, B: 28 } or { R: 178, G: 38, B: 25 } or { R: 160, G: 34, B: 22 } }
+            || cancel?.Background is not SolidColorBrush cancelBackground
+            || cancelBackground.Color == ((SolidColorBrush)remove.Background).Color
+            || dialog.DefaultButton != ContentDialogButton.Close)
+        {
+            throw new InvalidOperationException($"Unexpected button colors: Remove={(remove?.Background as SolidColorBrush)?.Color}, Cancel={(cancel?.Background as SolidColorBrush)?.Color}, Default={dialog.DefaultButton}.");
+        }
+        return window;
+    }
+
     /// <summary>A site's "…" menu, open.</summary>
     internal async Task<Window> ShowSiteMenu(string site)
     {

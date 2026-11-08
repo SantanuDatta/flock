@@ -398,18 +398,32 @@ internal static class Ui
         };
         if (destructive)
         {
-            // The accent button style, recolored through the resources its template looks up (the
-            // same red in both themes, so white text stays readable).
-            dialog.PrimaryButtonStyle = Resource<Style>("AccentButtonStyle");
-            var white = new SolidColorBrush(Colors.White);
-            foreach (var (state, red) in new[] { ("", Rgb(196, 43, 28)), ("PointerOver", Rgb(178, 38, 25)), ("Pressed", Rgb(160, 34, 22)) })
+            dialog.Loaded += (_, _) =>
             {
-                dialog.Resources["AccentButtonBackground" + state] = new SolidColorBrush(red);
-                dialog.Resources["AccentButtonBorderBrush" + state] = new SolidColorBrush(red);
-                dialog.Resources["AccentButtonForeground" + state] = white;
-            }
+                // Keep the destructive palette on the action button. Cancel also uses the
+                // accent style when it is the default, so dialog-wide overrides recolor both.
+                if (FindDialogButton(dialog, "PrimaryButton") is not { } button) return;
+                var white = new SolidColorBrush(Colors.White);
+                foreach (var (state, red) in new[] { ("", Rgb(196, 43, 28)), ("PointerOver", Rgb(178, 38, 25)), ("Pressed", Rgb(160, 34, 22)) })
+                {
+                    button.Resources["AccentButtonBackground" + state] = new SolidColorBrush(red);
+                    button.Resources["AccentButtonBorderBrush" + state] = new SolidColorBrush(red);
+                    button.Resources["AccentButtonForeground" + state] = white;
+                }
+                button.Style = Resource<Style>("AccentButtonStyle");
+            };
         }
         return await dialog.ShowAsync() == ContentDialogResult.Primary;
+    }
+
+    private static Button? FindDialogButton(DependencyObject root, string name)
+    {
+        if (root is Button button && button.Name == name) return button;
+        for (var i = 0; i < VisualTreeHelper.GetChildrenCount(root); i++)
+        {
+            if (FindDialogButton(VisualTreeHelper.GetChild(root, i), name) is { } found) return found;
+        }
+        return null;
     }
 
     /// <summary>Tells the user something that needs no decision: a title, a sentence and OK.</summary>

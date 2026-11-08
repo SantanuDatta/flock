@@ -13,6 +13,7 @@ internal sealed class Screenshots(Screenshots.Options options)
     private static readonly Shot[] All =
     [
         new("settings-general-project-folders", app => app.ShowSettings(SettingsPane.General, "Updates")),
+        new("settings-remove-project-folder", app => app.ShowRemoveProjectFolder()),
         new("settings-general-daemon", app => app.ShowSettings(SettingsPane.General)),
         new("settings-sites", app => app.ShowSite("shop")),
         new("settings-sites-https", app => app.ShowSite("acme")),
