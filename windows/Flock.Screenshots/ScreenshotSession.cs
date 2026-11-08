@@ -2,6 +2,7 @@ using Flock.Tray.Settings;
 using Flock.Tray.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 namespace Flock.Tray;
 
@@ -96,7 +97,9 @@ internal sealed class ScreenshotSession(App app)
         if (remove?.Background is not SolidColorBrush { Color: { R: 196, G: 43, B: 28 } or { R: 178, G: 38, B: 25 } or { R: 160, G: 34, B: 22 } }
             || cancel?.Background is not SolidColorBrush cancelBackground
             || cancelBackground.Color == ((SolidColorBrush)remove.Background).Color
-            || dialog.DefaultButton != ContentDialogButton.Close)
+            || !ReferenceEquals(cancel.Style, Ui.Resource<Style>("DefaultButtonStyle"))
+            || dialog.DefaultButton != ContentDialogButton.None
+            || !ReferenceEquals(FocusManager.GetFocusedElement(window.XamlRoot), cancel))
         {
             throw new InvalidOperationException($"Unexpected button colors: Remove={(remove?.Background as SolidColorBrush)?.Color}, Cancel={(cancel?.Background as SolidColorBrush)?.Color}, Default={dialog.DefaultButton}.");
         }

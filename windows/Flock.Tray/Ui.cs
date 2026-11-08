@@ -398,10 +398,17 @@ internal static class Ui
         };
         if (destructive)
         {
+            // A default button gets WinUI's accent fill. Focus Cancel explicitly instead.
+            dialog.DefaultButton = ContentDialogButton.None;
             dialog.Loaded += (_, _) =>
             {
-                // Keep the destructive palette on the action button. Cancel also uses the
-                // accent style when it is the default, so dialog-wide overrides recolor both.
+                // Keep Cancel neutral and give it the initial keyboard focus.
+                if (FindDialogButton(dialog, "CloseButton") is { } cancel)
+                {
+                    cancel.Style = Resource<Style>("DefaultButtonStyle");
+                    cancel.Focus(FocusState.Programmatic);
+                }
+                // Keep the destructive palette on the action button only.
                 if (FindDialogButton(dialog, "PrimaryButton") is not { } button) return;
                 var white = new SolidColorBrush(Colors.White);
                 foreach (var (state, red) in new[] { ("", Rgb(196, 43, 28)), ("PointerOver", Rgb(178, 38, 25)), ("Pressed", Rgb(160, 34, 22)) })
