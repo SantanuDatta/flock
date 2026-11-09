@@ -43,8 +43,7 @@ impl AboutPane {
                 .build(),
         );
         let support_links = gtk::Box::builder().spacing(8).halign(gtk::Align::Center).build();
-        for (label, url) in
-            [("Star on GitHub", "https://github.com/flock-php/flock"), ("Sponsor", "https://github.com/sponsors/flock-php")]
+        for (label, url) in [("Star on GitHub", "https://github.com/flock-php/flock"), ("Sponsor", "https://github.com/sponsors/flock-php")]
         {
             support_links.append(&link_button(label, url));
         }
