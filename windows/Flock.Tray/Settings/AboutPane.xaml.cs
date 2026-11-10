@@ -5,7 +5,6 @@ using Flock.Kit;
 using Flock.Tray.Infrastructure;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Media.Imaging;
 namespace Flock.Tray.Settings;
 
 internal sealed partial class AboutPane : UserControl, ISettingsPane
@@ -18,7 +17,6 @@ internal sealed partial class AboutPane : UserControl, ISettingsPane
     {
         this.model = model;
         InitializeComponent();
-        AppIcon.Source = new BitmapImage(new Uri(Path.Combine(AppContext.BaseDirectory, "Assets", "AppIcon.png")));
         version = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "dev";
         viewModel = new AboutViewModel(model);
         DataContext = viewModel;
@@ -47,6 +45,18 @@ internal sealed partial class AboutPane : UserControl, ISettingsPane
     private void OpenDocumentation(object sender, RoutedEventArgs args)
     {
         model.Open("https://flockphp.com/docs");
+    }
+    private void OpenDiscord(object sender, RoutedEventArgs args)
+    {
+        model.Open("https://discord.flockphp.com");
+    }
+    private void StarOnGitHub(object sender, RoutedEventArgs args)
+    {
+        model.Open("https://github.com/flock-php/flock");
+    }
+    private void Sponsor(object sender, RoutedEventArgs args)
+    {
+        model.Open("https://github.com/sponsors/flock-php");
     }
     private void OpenLicense(object sender, RoutedEventArgs args)
     {
